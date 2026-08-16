@@ -3,10 +3,10 @@
 This repository contains three BPMN 2.0 process models based directly on the assignment scenarios.
 
 ## Files
-- `scenario1_leave_approval.bpmn` – Employee Leave Approval
-- `scenario2_purchase_order.bpmn` – Online Purchase Order Processing
-- `scenario3_it_service_request.bpmn` – IT Service Request
-- `BPMN_Process_Explanation.docx` – Explanation of each scenario and process logic
+- `sunandha_question1.bpmn` – Employee Leave Approval
+- `sunandha_question2.bpmn` – Online Purchase Order Processing
+- `sunandha_question3.bpmn` – IT Service Request
+- `explanation.docx` – Explanation of each scenario and process logic
 
 ## How to open
 Open each `.bpmn` file in Camunda Modeler or another BPMN 2.0-compatible modeling tool.
