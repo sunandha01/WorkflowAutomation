@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="Process_PurchaseOrder" name="Online Purchase Order Processing" isExecutable="false">
+    <bpmn:startEvent id="S2_Start" name="Customer places order" />
+    <bpmn:task id="S2_Check" name="Check product availability" />
+    <bpmn:exclusiveGateway id="S2_G1" name="Product available?">
+      <bpmn:outgoing>Flow_1xjhfk0</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0q08k23</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="S2_OOS" name="Notify customer: out of stock">
+      <bpmn:incoming>Flow_0q08k23</bpmn:incoming>
+    </bpmn:task>
+    <bpmn:endEvent id="S2_EOOS" name="Out of stock" />
+    <bpmn:task id="S2_Pay" name="Process payment">
+      <bpmn:incoming>Flow_1xjhfk0</bpmn:incoming>
+    </bpmn:task>
+    <bpmn:exclusiveGateway id="S2_G2" name="Payment successful?">
+      <bpmn:outgoing>Flow_1k97idz</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0zna2ig</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:task id="S2_Fail" name="Notify customer: payment failed">
+      <bpmn:incoming>Flow_0zna2ig</bpmn:incoming>
+    </bpmn:task>
+    <bpmn:endEvent id="S2_EFail" name="Payment failed" />
+    <bpmn:task id="S2_Confirm" name="Confirm order">
+      <bpmn:incoming>Flow_1k97idz</bpmn:incoming>
+    </bpmn:task>
+    <bpmn:task id="S2_Prepare" name="Prepare product for shipment" />
+    <bpmn:task id="S2_Ship" name="Ship order" />
+    <bpmn:task id="S2_Notify" name="Send shipping confirmation" />
+    <bpmn:endEvent id="S2_End" name="Order completed" />
+    <bpmn:sequenceFlow id="S2F1" sourceRef="S2_Start" targetRef="S2_Check" />
+    <bpmn:sequenceFlow id="S2F2" sourceRef="S2_Check" targetRef="S2_G1" />
+    <bpmn:sequenceFlow id="S2F4" sourceRef="S2_OOS" targetRef="S2_EOOS" />
+    <bpmn:sequenceFlow id="S2F6" sourceRef="S2_Pay" targetRef="S2_G2" />
+    <bpmn:sequenceFlow id="S2F8" sourceRef="S2_Fail" targetRef="S2_EFail" />
+    <bpmn:sequenceFlow id="S2F10" sourceRef="S2_Confirm" targetRef="S2_Prepare" />
+    <bpmn:sequenceFlow id="S2F11" sourceRef="S2_Prepare" targetRef="S2_Ship" />
+    <bpmn:sequenceFlow id="S2F12" sourceRef="S2_Ship" targetRef="S2_Notify" />
+    <bpmn:sequenceFlow id="S2F13" sourceRef="S2_Notify" targetRef="S2_End" />
+    <bpmn:sequenceFlow id="Flow_1xjhfk0" name="Yes" sourceRef="S2_G1" targetRef="S2_Pay" />
+    <bpmn:sequenceFlow id="Flow_0q08k23" name="No" sourceRef="S2_G1" targetRef="S2_OOS" />
+    <bpmn:sequenceFlow id="Flow_1k97idz" name="Yes" sourceRef="S2_G2" targetRef="S2_Confirm" />
+    <bpmn:sequenceFlow id="Flow_0zna2ig" name="No" sourceRef="S2_G2" targetRef="S2_Fail" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_PurchaseOrder">
+      <bpmndi:BPMNShape id="S2_Start_di" bpmnElement="S2_Start">
+        <dc:Bounds x="180" y="270" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="157" y="306" width="83" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_Check_di" bpmnElement="S2_Check">
+        <dc:Bounds x="250" y="258" width="150" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_G1_di" bpmnElement="S2_G1" isMarkerVisible="true">
+        <dc:Bounds x="440" y="263" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="495" y="274" width="50" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_EFail_di" bpmnElement="S2_EFail">
+        <dc:Bounds x="1030" y="382" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1012" y="418" width="73" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_OOS_di" bpmnElement="S2_OOS">
+        <dc:Bounds x="380" y="370" width="170" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_EOOS_di" bpmnElement="S2_EOOS">
+        <dc:Bounds x="622" y="382" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="611" y="418" width="59" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_Pay_di" bpmnElement="S2_Pay">
+        <dc:Bounds x="540" y="120" width="140" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_G2_di" bpmnElement="S2_G2" isMarkerVisible="true">
+        <dc:Bounds x="755" y="175" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="691" y="186" width="58" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_Confirm_di" bpmnElement="S2_Confirm">
+        <dc:Bounds x="845" y="170" width="130" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_Prepare_di" bpmnElement="S2_Prepare">
+        <dc:Bounds x="1015" y="90" width="170" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_Fail_di" bpmnElement="S2_Fail">
+        <dc:Bounds x="825" y="258" width="170" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_Ship_di" bpmnElement="S2_Ship">
+        <dc:Bounds x="1260" y="90" width="120" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_Notify_di" bpmnElement="S2_Notify">
+        <dc:Bounds x="1420" y="90" width="180" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="S2_End_di" bpmnElement="S2_End">
+        <dc:Bounds x="1492" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1469" y="248" width="82" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="S2F1_di" bpmnElement="S2F1">
+        <di:waypoint x="216" y="288" />
+        <di:waypoint x="250" y="288" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2F2_di" bpmnElement="S2F2">
+        <di:waypoint x="400" y="288" />
+        <di:waypoint x="440" y="288" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xjhfk0_di" bpmnElement="Flow_1xjhfk0">
+        <di:waypoint x="465" y="263" />
+        <di:waypoint x="465" y="150" />
+        <di:waypoint x="540" y="150" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="471" y="205.5" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0q08k23_di" bpmnElement="Flow_0q08k23">
+        <di:waypoint x="465" y="313" />
+        <di:waypoint x="465" y="370" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="473" y="338.5" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2F8_di" bpmnElement="S2F8">
+        <di:waypoint x="910" y="318" />
+        <di:waypoint x="910" y="400" />
+        <di:waypoint x="1030" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2F10_di" bpmnElement="S2F10">
+        <di:waypoint x="910" y="170" />
+        <di:waypoint x="910" y="120" />
+        <di:waypoint x="1015" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2F11_di" bpmnElement="S2F11">
+        <di:waypoint x="1185" y="120" />
+        <di:waypoint x="1260" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2F12_di" bpmnElement="S2F12">
+        <di:waypoint x="1380" y="120" />
+        <di:waypoint x="1420" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2F13_di" bpmnElement="S2F13">
+        <di:waypoint x="1510" y="150" />
+        <di:waypoint x="1510" y="212" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2F4_di" bpmnElement="S2F4">
+        <di:waypoint x="550" y="400" />
+        <di:waypoint x="622" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="S2F6_di" bpmnElement="S2F6">
+        <di:waypoint x="680" y="150" />
+        <di:waypoint x="780" y="150" />
+        <di:waypoint x="780" y="175" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1k97idz_di" bpmnElement="Flow_1k97idz">
+        <di:waypoint x="805" y="200" />
+        <di:waypoint x="845" y="200" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="816" y="182" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zna2ig_di" bpmnElement="Flow_0zna2ig">
+        <di:waypoint x="780" y="225" />
+        <di:waypoint x="780" y="288" />
+        <di:waypoint x="825" y="288" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="788" y="253.5" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
