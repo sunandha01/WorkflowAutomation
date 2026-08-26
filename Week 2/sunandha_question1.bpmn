@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_LoanRisk" targetNamespace="http://example.com/bpmn/loan-risk" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="LoanApplicationRiskRouting" name="Loan Application Risk Routing" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_Loan" name="Customer Submits Loan Application">
+      <bpmn:outgoing>Flow_Start_Risk</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:businessRuleTask id="Task_EvaluateRisk" name="Evaluate Loan Risk" camunda:resultVariable="loanRiskResult" camunda:decisionRef="evaluate-loan-risk" camunda:mapDecisionResult="singleEntry">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="Input_3gpibbp" />
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Start_Risk</bpmn:incoming>
+      <bpmn:outgoing>Flow_Risk_Gateway</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="Gateway_Risk" name="Evaluate Risk Tier">
+      <bpmn:incoming>Flow_Risk_Gateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_Low</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Medium</bpmn:outgoing>
+      <bpmn:outgoing>Flow_High</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_AutoApprove" name="Auto-Approve and Disburse">
+      <bpmn:incoming>Flow_Low</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approve_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Task_Underwriter" name="Underwriter Review">
+      <bpmn:incoming>Flow_Medium</bpmn:incoming>
+      <bpmn:outgoing>Flow_Review_End</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_AutoReject" name="Auto-Reject Notification">
+      <bpmn:incoming>Flow_High</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reject_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Approved" name="Approved / Disbursed">
+      <bpmn:incoming>Flow_Approve_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Reviewed" name="Underwriter Review Complete">
+      <bpmn:incoming>Flow_Review_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="End_Rejected" name="Rejected / Notification Sent">
+      <bpmn:incoming>Flow_Reject_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_Risk" sourceRef="StartEvent_Loan" targetRef="Task_EvaluateRisk" />
+    <bpmn:sequenceFlow id="Flow_Risk_Gateway" sourceRef="Task_EvaluateRisk" targetRef="Gateway_Risk" />
+    <bpmn:sequenceFlow id="Flow_Low" name="riskTier == &#34;LOW&#34;" sourceRef="Gateway_Risk" targetRef="Task_AutoApprove">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=loanRiskResult.riskTier = "LOW"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Medium" name="riskTier == &#34;MEDIUM&#34; OR manual review" sourceRef="Gateway_Risk" targetRef="Task_Underwriter">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=loanRiskResult.riskTier = "MEDIUM" or loanRiskResult.requiresManualReview = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_High" name="riskTier == &#34;HIGH&#34; AND no manual review" sourceRef="Gateway_Risk" targetRef="Task_AutoReject">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=loanRiskResult.riskTier = "HIGH" and loanRiskResult.requiresManualReview = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Approve_End" sourceRef="Task_AutoApprove" targetRef="End_Approved" />
+    <bpmn:sequenceFlow id="Flow_Review_End" sourceRef="Task_Underwriter" targetRef="End_Reviewed" />
+    <bpmn:sequenceFlow id="Flow_Reject_End" sourceRef="Task_AutoReject" targetRef="End_Rejected" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_LoanRisk">
+    <bpmndi:BPMNPlane id="BPMNPlane_LoanRisk" bpmnElement="LoanApplicationRiskRouting">
+      <bpmndi:BPMNShape id="Shape_Start" bpmnElement="StartEvent_Loan">
+        <dc:Bounds x="170" y="180" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="154" y="216" width="68" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Risk" bpmnElement="Task_EvaluateRisk">
+        <dc:Bounds x="250" y="158" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway" bpmnElement="Gateway_Risk" isMarkerVisible="true">
+        <dc:Bounds x="460" y="173" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="441" y="223" width="89" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Approve" bpmnElement="Task_AutoApprove">
+        <dc:Bounds x="600" y="65" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Underwriter" bpmnElement="Task_Underwriter">
+        <dc:Bounds x="600" y="160" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Reject" bpmnElement="Task_AutoReject">
+        <dc:Bounds x="600" y="255" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndA" bpmnElement="End_Approved">
+        <dc:Bounds x="840" y="87" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="831" y="123" width="54" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndU" bpmnElement="End_Reviewed">
+        <dc:Bounds x="840" y="182" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="815" y="218" width="87" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_EndR" bpmnElement="End_Rejected">
+        <dc:Bounds x="840" y="277" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="818" y="313" width="81" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_Start" bpmnElement="Flow_Start_Risk">
+        <di:waypoint x="206" y="198" />
+        <di:waypoint x="250" y="198" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_RiskGateway" bpmnElement="Flow_Risk_Gateway">
+        <di:waypoint x="410" y="198" />
+        <di:waypoint x="460" y="198" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Low" bpmnElement="Flow_Low">
+        <di:waypoint x="485" y="173" />
+        <di:waypoint x="485" y="105" />
+        <di:waypoint x="600" y="105" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="486" y="83" width="88" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Medium" bpmnElement="Flow_Medium">
+        <di:waypoint x="510" y="198" />
+        <di:waypoint x="600" y="200" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="519" y="150" width="72" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_High" bpmnElement="Flow_High">
+        <di:waypoint x="485" y="223" />
+        <di:waypoint x="485" y="295" />
+        <di:waypoint x="600" y="295" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="501" y="300" width="77" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_ApproveEnd" bpmnElement="Flow_Approve_End">
+        <di:waypoint x="780" y="105" />
+        <di:waypoint x="840" y="105" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_ReviewEnd" bpmnElement="Flow_Review_End">
+        <di:waypoint x="780" y="200" />
+        <di:waypoint x="840" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_RejectEnd" bpmnElement="Flow_Reject_End">
+        <di:waypoint x="780" y="295" />
+        <di:waypoint x="840" y="295" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

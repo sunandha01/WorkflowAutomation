@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
+             xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
+             xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
+             xmlns:camunda="http://camunda.org/schema/1.0/dmn"
+             id="Definitions_CalculateDiscounts"
+             name="calculate-discounts"
+             namespace="http://example.com/dmn/order-discount"
+             exporter="Camunda Modeler"
+             exporterVersion="5.x">
+  <decision id="calculate-discounts" name="Calculate Total Discount">
+    <decisionTable id="DecisionTable_Discounts" hitPolicy="COLLECT" aggregation="SUM">
+      <input id="Input_customerTier" label="customerTier">
+        <inputExpression id="InputExpression_customerTier" typeRef="string">
+          <text>customerTier</text>
+        </inputExpression>
+      </input>
+      <input id="Input_cartValue" label="cartValue">
+        <inputExpression id="InputExpression_cartValue" typeRef="double">
+          <text>cartValue</text>
+        </inputExpression>
+      </input>
+      <input id="Input_promoCode" label="promoCode">
+        <inputExpression id="InputExpression_promoCode" typeRef="string">
+          <text>promoCode</text>
+        </inputExpression>
+      </input>
+      <output id="Output_discountPercent" label="discountPercent" name="discountPercent" typeRef="integer"/>
+
+      <rule id="Rule_Premium">
+        <inputEntry id="Entry_Premium_Tier"><text>"PREMIUM"</text></inputEntry>
+        <inputEntry id="Entry_Premium_Cart"><text>-</text></inputEntry>
+        <inputEntry id="Entry_Premium_Promo"><text>-</text></inputEntry>
+        <outputEntry id="Entry_Premium_Discount"><text>10</text></outputEntry>
+      </rule>
+      <rule id="Rule_Cart500">
+        <inputEntry id="Entry_Cart_Tier"><text>-</text></inputEntry>
+        <inputEntry id="Entry_Cart_Value"><text>&gt;= 500</text></inputEntry>
+        <inputEntry id="Entry_Cart_Promo"><text>-</text></inputEntry>
+        <outputEntry id="Entry_Cart_Discount"><text>5</text></outputEntry>
+      </rule>
+      <rule id="Rule_Promo">
+        <inputEntry id="Entry_Promo_Tier"><text>-</text></inputEntry>
+        <inputEntry id="Entry_Promo_Value"><text>-</text></inputEntry>
+        <inputEntry id="Entry_Promo_Code"><text>"FESTIVE10","SPECIAL10"</text></inputEntry>
+        <outputEntry id="Entry_Promo_Discount"><text>10</text></outputEntry>
+      </rule>
+      <rule id="Rule_Default">
+        <inputEntry id="Entry_Default_Tier"><text>-</text></inputEntry>
+        <inputEntry id="Entry_Default_Value"><text>-</text></inputEntry>
+        <inputEntry id="Entry_Default_Promo"><text>-</text></inputEntry>
+        <outputEntry id="Entry_Default_Discount"><text>0</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

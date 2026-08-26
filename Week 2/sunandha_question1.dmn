@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="Definitions_EvaluateLoanRisk" name="evaluate-loan-risk" namespace="http://example.com/dmn/loan-risk" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <decision id="evaluate-loan-risk" name="Evaluate Loan Risk">
+    <decisionTable id="DecisionTable_LoanRisk">
+      <input id="Input_creditScore" label="creditScore">
+        <inputExpression id="InputExpression_creditScore" typeRef="integer">
+          <text>creditScore</text>
+        </inputExpression>
+      </input>
+      <input id="Input_loanAmount" label="loanAmount">
+        <inputExpression id="InputExpression_loanAmount" typeRef="double">
+          <text>loanAmount</text>
+        </inputExpression>
+      </input>
+      <output id="Output_riskTier" label="riskTier" name="riskTier" typeRef="string" />
+      <output id="Output_manualReview" label="requiresManualReview" name="requiresManualReview" typeRef="boolean" />
+      <rule id="Rule_Low">
+        <inputEntry id="Entry_Low_Credit">
+          <text>&gt;= 750</text>
+        </inputEntry>
+        <inputEntry id="Entry_Low_Amount">
+          <text>&lt;= 50000</text>
+        </inputEntry>
+        <outputEntry id="Entry_Low_Tier">
+          <text>"LOW"</text>
+        </outputEntry>
+        <outputEntry id="Entry_Low_Manual">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+      <rule id="Rule_Medium_HighAmount">
+        <inputEntry id="Entry_Medium_Credit">
+          <text>&gt;= 750</text>
+        </inputEntry>
+        <inputEntry id="Entry_Medium_Amount">
+          <text>&gt; 50000</text>
+        </inputEntry>
+        <outputEntry id="Entry_Medium_Tier">
+          <text>"MEDIUM"</text>
+        </outputEntry>
+        <outputEntry id="Entry_Medium_Manual">
+          <text>true</text>
+        </outputEntry>
+      </rule>
+      <rule id="Rule_Medium_MidCredit">
+        <inputEntry id="Entry_Mid_Credit">
+          <text>[600..749]</text>
+        </inputEntry>
+        <inputEntry id="Entry_Mid_Amount">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="Entry_Mid_Tier">
+          <text>"MEDIUM"</text>
+        </outputEntry>
+        <outputEntry id="Entry_Mid_Manual">
+          <text>true</text>
+        </outputEntry>
+      </rule>
+      <rule id="Rule_High">
+        <inputEntry id="Entry_High_Credit">
+          <text>&lt; 600</text>
+        </inputEntry>
+        <inputEntry id="Entry_High_Amount">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="Entry_High_Tier">
+          <text>"HIGH"</text>
+        </outputEntry>
+        <outputEntry id="Entry_High_Manual">
+          <text>false</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

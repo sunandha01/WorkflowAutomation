@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_OrderDiscount" targetNamespace="http://example.com/bpmn/order-discount" exporter="Camunda Modeler" exporterVersion="5.49.0">
+  <bpmn:process id="MultiItemOrderDiscountFulfillment" name="Multi-Item Order Discount &#38; Fulfillment Orchestration" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_Order" name="Receive Order">
+      <bpmn:outgoing>Flow_Order_Discount</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:businessRuleTask id="Task_CalculateDiscount" name="Calculate Total Discount" camunda:resultVariable="totalDiscount" camunda:decisionRef="calculate-discounts" camunda:mapDecisionResult="singleEntry">
+      <bpmn:incoming>Flow_Order_Discount</bpmn:incoming>
+      <bpmn:outgoing>Flow_Discount_Amount</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:scriptTask id="Task_FinalAmount" name="Calculate Final Invoice Amount" scriptFormat="javascript">
+      <bpmn:incoming>Flow_Discount_Amount</bpmn:incoming>
+      <bpmn:outgoing>Flow_Amount_Gateway</bpmn:outgoing>
+      <bpmn:script>execution.setVariable("finalAmount", execution.getVariable("cartValue") * (1 - (execution.getVariable("totalDiscount") / 100)));</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:exclusiveGateway id="Gateway_FinalAmount" name="Final Amount &#62;= 1000?">
+      <bpmn:incoming>Flow_Amount_Gateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_Manager</bpmn:outgoing>
+      <bpmn:outgoing>Flow_Warehouse_Direct</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_Manager" name="Manager Sign-off">
+      <bpmn:incoming>Flow_Manager</bpmn:incoming>
+      <bpmn:outgoing>Flow_Manager_Warehouse</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_Warehouse" name="Send Order to Warehouse">
+      <bpmn:incoming>Flow_Warehouse_Direct</bpmn:incoming>
+      <bpmn:incoming>Flow_Manager_Warehouse</bpmn:incoming>
+      <bpmn:outgoing>Flow_Warehouse_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Order" name="Order Fulfilled">
+      <bpmn:incoming>Flow_Warehouse_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Order_Discount" sourceRef="StartEvent_Order" targetRef="Task_CalculateDiscount" />
+    <bpmn:sequenceFlow id="Flow_Discount_Amount" sourceRef="Task_CalculateDiscount" targetRef="Task_FinalAmount" />
+    <bpmn:sequenceFlow id="Flow_Amount_Gateway" sourceRef="Task_FinalAmount" targetRef="Gateway_FinalAmount" />
+    <bpmn:sequenceFlow id="Flow_Manager" name="finalAmount &#62;= 1000" sourceRef="Gateway_FinalAmount" targetRef="Task_Manager">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=finalAmount &gt;= 1000</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Warehouse_Direct" name="finalAmount &#60; 1000" sourceRef="Gateway_FinalAmount" targetRef="Task_Warehouse">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=finalAmount &lt; 1000</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_Manager_Warehouse" sourceRef="Task_Manager" targetRef="Task_Warehouse" />
+    <bpmn:sequenceFlow id="Flow_Warehouse_End" sourceRef="Task_Warehouse" targetRef="End_Order" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_OrderDiscount">
+    <bpmndi:BPMNPlane id="BPMNPlane_OrderDiscount" bpmnElement="MultiItemOrderDiscountFulfillment">
+      <bpmndi:BPMNShape id="Shape_Start2" bpmnElement="StartEvent_Order">
+        <dc:Bounds x="170" y="190" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="153" y="226" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Discount" bpmnElement="Task_CalculateDiscount">
+        <dc:Bounds x="240" y="168" width="180" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_FinalAmount" bpmnElement="Task_FinalAmount">
+        <dc:Bounds x="470" y="168" width="200" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Gateway2" bpmnElement="Gateway_FinalAmount" isMarkerVisible="true">
+        <dc:Bounds x="720" y="183" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="769" y="194" width="81" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Manager" bpmnElement="Task_Manager">
+        <dc:Bounds x="840" y="70" width="170" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_Warehouse" bpmnElement="Task_Warehouse">
+        <dc:Bounds x="840" y="230" width="190" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Shape_End2" bpmnElement="End_Order">
+        <dc:Bounds x="1080" y="252" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1063" y="288" width="70" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Edge_OrderDiscount" bpmnElement="Flow_Order_Discount">
+        <di:waypoint x="206" y="208" />
+        <di:waypoint x="240" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_DiscountAmount" bpmnElement="Flow_Discount_Amount">
+        <di:waypoint x="420" y="208" />
+        <di:waypoint x="470" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_AmountGateway" bpmnElement="Flow_Amount_Gateway">
+        <di:waypoint x="670" y="208" />
+        <di:waypoint x="720" y="208" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Manager2" bpmnElement="Flow_Manager">
+        <di:waypoint x="745" y="183" />
+        <di:waypoint x="745" y="110" />
+        <di:waypoint x="840" y="110" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="743" y="76" width="74" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Direct" bpmnElement="Flow_Warehouse_Direct">
+        <di:waypoint x="745" y="233" />
+        <di:waypoint x="745" y="270" />
+        <di:waypoint x="840" y="270" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="746" y="281" width="68" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_ManagerWarehouse" bpmnElement="Flow_Manager_Warehouse">
+        <di:waypoint x="925" y="150" />
+        <di:waypoint x="925" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_WarehouseEnd" bpmnElement="Flow_Warehouse_End">
+        <di:waypoint x="1030" y="270" />
+        <di:waypoint x="1080" y="270" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
