@@ -1,0 +1,614 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_SHP" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="17.0.0">
+  <bpmn:collaboration id="Collab_SHP">
+    <bpmn:participant id="Pool_SHP" name="Logistics &amp; Shipment Exception Management" processRef="Process_SHP" />
+  </bpmn:collaboration>
+  <bpmn:message id="Msg_Cancel" name="Shipper cancellation request" />
+  <bpmn:message id="Msg_Delay" name="Delay alert (weather, strike, breakdown, hub overload)" />
+  <bpmn:message id="Msg_Docs" name="Customs documents" />
+  <bpmn:message id="Msg_Collect" name="Recipient collects at depot" />
+  <bpmn:error id="Err_Scan" name="Scanner offline / data mismatch" errorCode="SCAN_FAILED" />
+  <bpmn:process id="Process_SHP" name="Courier Shipment Life Cycle with Exception Handling" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_SHP">
+      <bpmn:lane id="Lane_Shipper" name="Shipper / Customer">
+        <bpmn:flowNodeRef>Start_Booking</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Book</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Correct</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Control" name="Control Tower / Dispatcher">
+        <bpmn:flowNodeRef>Rule_Validate</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Valid</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Charge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Refund</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Schedule</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Throw_Refund</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Cancelled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Tracking</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Customs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Docs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_RequestDocs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReceiveDocs</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Close</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Delivered</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Comp_Charge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_Docs</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Pickup" name="Pickup Agent">
+        <bpmn:flowNodeRef>Task_Collect</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Collected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Split</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Scan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Err_ScanBoundary</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Hub" name="Hub / Warehouse">
+        <bpmn:flowNodeRef>Task_ManualScan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_MergeTransit</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_LineHaul</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Reroute</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_StopReturn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_Trace</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_International</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DestCheck</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Condition</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_InformDamage</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ReturnSender</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Returned</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Msg_DelayB</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Msg_CancelB</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_NoScan</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Timer_Trace</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Delivery" name="Delivery Agent">
+        <bpmn:flowNodeRef>Task_NotifyRecipient</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_Deliver</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Outcome</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Reason</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_HoldDepot</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_DepotWait</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Catch_Collected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Catch_Expired</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Recipient" name="Recipient">
+        <bpmn:flowNodeRef>Task_ConfirmAddress</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gw_Surcharge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_PaySurcharge</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_Claims" name="Claims Department">
+        <bpmn:flowNodeRef>Task_DeclareLost</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Lost</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Sub_Claims</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_Claim</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+<bpmn:startEvent id="Start_Booking" name="Shipment to send">
+      <bpmn:outgoing>Flow_SHP_01</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Book" name="Create shipment booking">
+      <bpmn:incoming>Flow_SHP_01</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_02</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_Correct" name="Correct booking details">
+      <bpmn:incoming>Flow_SHP_04</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_05</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:businessRuleTask id="Rule_Validate" name="Validate address, weight &amp; compute charges">
+      <bpmn:incoming>Flow_SHP_02</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_05</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_03</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="Gw_Valid" name="Booking valid?" default="Flow_SHP_06">
+      <bpmn:incoming>Flow_SHP_03</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_04</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_06</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_Charge" name="Collect booking charges">
+      <bpmn:incoming>Flow_SHP_06</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_07</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Refund" name="Refund charges minus fee" isForCompensation="true" />
+    <bpmn:serviceTask id="Task_Schedule" name="Schedule pickup &amp; assign driver">
+      <bpmn:incoming>Flow_SHP_07</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_08</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:intermediateThrowEvent id="Throw_Refund" name="Refund minus fee (compensate)">
+      <bpmn:incoming>Flow_SHP_12</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_23</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_13</bpmn:outgoing>
+      <bpmn:compensateEventDefinition id="Throw_Refund_ED" activityRef="Task_Charge" waitForCompletion="true" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="End_Cancelled" name="Cancelled">
+      <bpmn:incoming>Flow_SHP_13</bpmn:incoming>
+      <bpmn:terminateEventDefinition id="End_Cancelled_ED" />
+    </bpmn:endEvent>
+    <bpmn:sendTask id="Task_Tracking" name="Update tracking &amp; notify shipper">
+      <bpmn:incoming>Flow_SHP_15</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_29</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="Task_Customs" name="Clear customs">
+      <bpmn:incoming>Flow_SHP_31</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_37</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_33</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gw_Docs" name="Documents complete?" default="Flow_SHP_34">
+      <bpmn:incoming>Flow_SHP_33</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_34</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_35</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Task_RequestDocs" name="Request documents from shipper" messageRef="Msg_Docs">
+      <bpmn:incoming>Flow_SHP_35</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_36</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:receiveTask id="Task_ReceiveDocs" name="Receive customs documents" messageRef="Msg_Docs">
+      <bpmn:incoming>Flow_SHP_36</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_37</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:serviceTask id="Task_Close" name="Close shipment &amp; raise invoice">
+      <bpmn:incoming>Flow_SHP_47</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_56</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_59</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Delivered" name="Delivered &amp; closed">
+      <bpmn:incoming>Flow_SHP_59</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:manualTask id="Task_Collect" name="Collect parcel from shipper">
+      <bpmn:incoming>Flow_SHP_08</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_09</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:exclusiveGateway id="Gw_Collected" name="Parcel collected?" default="Flow_SHP_10">
+      <bpmn:incoming>Flow_SHP_09</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_10</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_11</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:parallelGateway id="Gw_Split">
+      <bpmn:incoming>Flow_SHP_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_14</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_15</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="Task_Scan" name="Scan parcel at pickup">
+      <bpmn:incoming>Flow_SHP_14</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_16</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ManualScan" name="Supervisor updates scan &amp; reconciles">
+      <bpmn:incoming>Flow_SHP_17</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_18</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gw_MergeTransit">
+      <bpmn:incoming>Flow_SHP_16</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_18</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_21</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_25</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_19</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:subProcess id="Sub_LineHaul" name="Line-haul (per leg)" triggeredByEvent="false">
+      <bpmn:incoming>Flow_SHP_19</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_28</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics id="Sub_LineHaul_MI" isSequential="true" />
+      <bpmn:startEvent id="LH_Start" name="Leg starts">
+        <bpmn:outgoing>Flow_SHP_64</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:manualTask id="LH_Load" name="Sort, load &amp; dispatch">
+        <bpmn:incoming>Flow_SHP_64</bpmn:incoming>
+        <bpmn:outgoing>Flow_SHP_65</bpmn:outgoing>
+      </bpmn:manualTask>
+      <bpmn:userTask id="LH_Unload" name="Unload &amp; scan at next hub">
+        <bpmn:incoming>Flow_SHP_65</bpmn:incoming>
+        <bpmn:outgoing>Flow_SHP_66</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:endEvent id="LH_End" name="Leg complete">
+        <bpmn:incoming>Flow_SHP_66</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_SHP_64" sourceRef="LH_Start" targetRef="LH_Load" />
+      <bpmn:sequenceFlow id="Flow_SHP_65" sourceRef="LH_Load" targetRef="LH_Unload" />
+      <bpmn:sequenceFlow id="Flow_SHP_66" sourceRef="LH_Unload" targetRef="LH_End" />
+    </bpmn:subProcess>
+    <bpmn:serviceTask id="Task_Reroute" name="Reroute / alternate vehicle, new ETA">
+      <bpmn:incoming>Flow_SHP_20</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_21</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:manualTask id="Task_StopReturn" name="Stop movement &amp; return parcel">
+      <bpmn:incoming>Flow_SHP_22</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_23</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:subProcess id="Sub_Trace" name="Trace parcel" triggeredByEvent="false">
+      <bpmn:incoming>Flow_SHP_24</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_25</bpmn:outgoing>
+      <bpmn:startEvent id="TR_Start" name="Trace opened">
+        <bpmn:outgoing>Flow_SHP_67</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask id="TR_Search" name="Check last scan, manifests &amp; vehicles">
+        <bpmn:incoming>Flow_SHP_67</bpmn:incoming>
+        <bpmn:outgoing>Flow_SHP_68</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:endEvent id="TR_End" name="Parcel located">
+        <bpmn:incoming>Flow_SHP_68</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_SHP_67" sourceRef="TR_Start" targetRef="TR_Search" />
+      <bpmn:sequenceFlow id="Flow_SHP_68" sourceRef="TR_Search" targetRef="TR_End" />
+    </bpmn:subProcess>
+    <bpmn:parallelGateway id="Gw_Join">
+      <bpmn:incoming>Flow_SHP_28</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_29</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_30</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:exclusiveGateway id="Gw_International" name="International?" default="Flow_SHP_32">
+      <bpmn:incoming>Flow_SHP_30</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_31</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_32</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_DestCheck" name="Inspect parcel at destination hub">
+      <bpmn:incoming>Flow_SHP_32</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_34</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_39</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gw_Condition" name="Parcel condition?" default="Flow_SHP_40">
+      <bpmn:incoming>Flow_SHP_39</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_40</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_41</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_42</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="Task_InformDamage" name="Record damage &amp; inform shipper">
+      <bpmn:incoming>Flow_SHP_41</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_43</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:serviceTask id="Task_ReturnSender" name="Return to sender &amp; adjust charges">
+      <bpmn:incoming>Flow_SHP_38</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_48</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_57</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_58</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Returned" name="Returned to sender">
+      <bpmn:incoming>Flow_SHP_58</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sendTask id="Task_NotifyRecipient" name="Notify recipient: out for delivery">
+      <bpmn:incoming>Flow_SHP_40</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_43</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_50</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_62</bpmn:incoming>
+      <bpmn:incoming>Flow_SHP_63</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_45</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="Task_Deliver" name="Deliver &amp; capture proof of delivery">
+      <bpmn:incoming>Flow_SHP_45</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_46</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gw_Outcome" name="Delivery outcome?" default="Flow_SHP_47">
+      <bpmn:incoming>Flow_SHP_46</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_47</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_48</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_49</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gw_Reason" name="Why not delivered?" default="Flow_SHP_51">
+      <bpmn:incoming>Flow_SHP_49</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_50</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_51</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_52</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Task_HoldDepot" name="Hold at depot (7 days)">
+      <bpmn:incoming>Flow_SHP_51</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_53</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:eventBasedGateway id="Gw_DepotWait" name="Collected or expired?">
+      <bpmn:incoming>Flow_SHP_53</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_54</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_55</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="Catch_Collected" name="Recipient collects">
+      <bpmn:incoming>Flow_SHP_54</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_56</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Catch_Collected_ED" messageRef="Msg_Collect" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:intermediateCatchEvent id="Catch_Expired" name="7 days elapsed">
+      <bpmn:incoming>Flow_SHP_55</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_57</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Catch_Expired_ED"><bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P7D</bpmn:timeDuration></bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:userTask id="Task_ConfirmAddress" name="Confirm correct address">
+      <bpmn:incoming>Flow_SHP_52</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_60</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gw_Surcharge" name="Outside original zone?" default="Flow_SHP_62">
+      <bpmn:incoming>Flow_SHP_60</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_61</bpmn:outgoing>
+      <bpmn:outgoing>Flow_SHP_62</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_PaySurcharge" name="Pay address-change surcharge">
+      <bpmn:incoming>Flow_SHP_61</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_63</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_DeclareLost" name="Declare lost, compensate &amp; notify">
+      <bpmn:incoming>Flow_SHP_26</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_27</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="End_Lost" name="Closed – lost">
+      <bpmn:incoming>Flow_SHP_27</bpmn:incoming>
+      <bpmn:terminateEventDefinition id="End_Lost_ED" />
+    </bpmn:endEvent>
+    <bpmn:subProcess id="Sub_Claims" name="Claim: refund / replace / reship" triggeredByEvent="false">
+      <bpmn:incoming>Flow_SHP_42</bpmn:incoming>
+      <bpmn:outgoing>Flow_SHP_44</bpmn:outgoing>
+      <bpmn:startEvent id="CL_Start" name="Claim raised">
+        <bpmn:outgoing>Flow_SHP_69</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask id="CL_Assess" name="Assess claim &amp; evidence">
+        <bpmn:incoming>Flow_SHP_69</bpmn:incoming>
+        <bpmn:outgoing>Flow_SHP_70</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:serviceTask id="CL_Settle" name="Refund, replace or reship">
+        <bpmn:incoming>Flow_SHP_70</bpmn:incoming>
+        <bpmn:outgoing>Flow_SHP_71</bpmn:outgoing>
+      </bpmn:serviceTask>
+      <bpmn:endEvent id="CL_End" name="Claim settled">
+        <bpmn:incoming>Flow_SHP_71</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_SHP_69" sourceRef="CL_Start" targetRef="CL_Assess" />
+      <bpmn:sequenceFlow id="Flow_SHP_70" sourceRef="CL_Assess" targetRef="CL_Settle" />
+      <bpmn:sequenceFlow id="Flow_SHP_71" sourceRef="CL_Settle" targetRef="CL_End" />
+    </bpmn:subProcess>
+    <bpmn:endEvent id="End_Claim" name="Closed – claim settled">
+      <bpmn:incoming>Flow_SHP_44</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:boundaryEvent id="Comp_Charge" name="" attachedToRef="Task_Charge">
+      <bpmn:compensateEventDefinition id="Comp_Charge_ED" waitForCompletion="true" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Timer_Docs" name="E6: No documents in 5 days" attachedToRef="Task_ReceiveDocs">
+      <bpmn:outgoing>Flow_SHP_38</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Timer_Docs_ED"><bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P5D</bpmn:timeDuration></bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Err_ScanBoundary" name="E9: Scanner offline / mismatch" attachedToRef="Task_Scan">
+      <bpmn:outgoing>Flow_SHP_17</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="Err_ScanBoundary_ED" errorRef="Err_Scan" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Msg_DelayB" name="E5: Delay alert" attachedToRef="Sub_LineHaul">
+      <bpmn:outgoing>Flow_SHP_20</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_DelayB_ED" messageRef="Msg_Delay" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Msg_CancelB" name="E10: Shipper cancels" attachedToRef="Sub_LineHaul">
+      <bpmn:outgoing>Flow_SHP_22</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="Msg_CancelB_ED" messageRef="Msg_Cancel" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Timer_NoScan" name="E4: No scan for 48 h" attachedToRef="Sub_LineHaul">
+      <bpmn:outgoing>Flow_SHP_24</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Timer_NoScan_ED"><bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT48H</bpmn:timeDuration></bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Timer_Trace" name="E4: Not found in 5 days" attachedToRef="Sub_Trace">
+      <bpmn:outgoing>Flow_SHP_26</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Timer_Trace_ED"><bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P5D</bpmn:timeDuration></bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_SHP_01" sourceRef="Start_Booking" targetRef="Task_Book" />
+    <bpmn:sequenceFlow id="Flow_SHP_02" sourceRef="Task_Book" targetRef="Rule_Validate" />
+    <bpmn:sequenceFlow id="Flow_SHP_03" sourceRef="Rule_Validate" targetRef="Gw_Valid" />
+    <bpmn:sequenceFlow id="Flow_SHP_04" name="E2: No" sourceRef="Gw_Valid" targetRef="Task_Correct" />
+    <bpmn:sequenceFlow id="Flow_SHP_05" name="Recheck" sourceRef="Task_Correct" targetRef="Rule_Validate" />
+    <bpmn:sequenceFlow id="Flow_SHP_06" name="Yes" sourceRef="Gw_Valid" targetRef="Task_Charge" />
+    <bpmn:sequenceFlow id="Flow_SHP_07" sourceRef="Task_Charge" targetRef="Task_Schedule" />
+    <bpmn:sequenceFlow id="Flow_SHP_08" sourceRef="Task_Schedule" targetRef="Task_Collect" />
+    <bpmn:sequenceFlow id="Flow_SHP_09" sourceRef="Task_Collect" targetRef="Gw_Collected" />
+    <bpmn:sequenceFlow id="Flow_SHP_10" name="Yes" sourceRef="Gw_Collected" targetRef="Gw_Split" />
+    <bpmn:sequenceFlow id="Flow_SHP_11" name="E1: No – reschedule (&lt; 2)" sourceRef="Gw_Collected" targetRef="Task_Schedule">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${reschedules &lt; 2}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_SHP_12" name="E1: 2nd failure – cancel" sourceRef="Gw_Collected" targetRef="Throw_Refund">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${reschedules &gt;= 2}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_SHP_13" sourceRef="Throw_Refund" targetRef="End_Cancelled" />
+    <bpmn:sequenceFlow id="Flow_SHP_14" sourceRef="Gw_Split" targetRef="Task_Scan" />
+    <bpmn:sequenceFlow id="Flow_SHP_15" sourceRef="Gw_Split" targetRef="Task_Tracking" />
+    <bpmn:sequenceFlow id="Flow_SHP_16" sourceRef="Task_Scan" targetRef="Gw_MergeTransit" />
+    <bpmn:sequenceFlow id="Flow_SHP_17" sourceRef="Err_ScanBoundary" targetRef="Task_ManualScan" />
+    <bpmn:sequenceFlow id="Flow_SHP_18" sourceRef="Task_ManualScan" targetRef="Gw_MergeTransit" />
+    <bpmn:sequenceFlow id="Flow_SHP_19" sourceRef="Gw_MergeTransit" targetRef="Sub_LineHaul" />
+    <bpmn:sequenceFlow id="Flow_SHP_20" sourceRef="Msg_DelayB" targetRef="Task_Reroute" />
+    <bpmn:sequenceFlow id="Flow_SHP_21" name="Resume" sourceRef="Task_Reroute" targetRef="Gw_MergeTransit" />
+    <bpmn:sequenceFlow id="Flow_SHP_22" sourceRef="Msg_CancelB" targetRef="Task_StopReturn" />
+    <bpmn:sequenceFlow id="Flow_SHP_23" sourceRef="Task_StopReturn" targetRef="Throw_Refund" />
+    <bpmn:sequenceFlow id="Flow_SHP_24" sourceRef="Timer_NoScan" targetRef="Sub_Trace" />
+    <bpmn:sequenceFlow id="Flow_SHP_25" name="Found – resume" sourceRef="Sub_Trace" targetRef="Gw_MergeTransit" />
+    <bpmn:sequenceFlow id="Flow_SHP_26" sourceRef="Timer_Trace" targetRef="Task_DeclareLost" />
+    <bpmn:sequenceFlow id="Flow_SHP_27" sourceRef="Task_DeclareLost" targetRef="End_Lost" />
+    <bpmn:sequenceFlow id="Flow_SHP_28" sourceRef="Sub_LineHaul" targetRef="Gw_Join" />
+    <bpmn:sequenceFlow id="Flow_SHP_29" sourceRef="Task_Tracking" targetRef="Gw_Join" />
+    <bpmn:sequenceFlow id="Flow_SHP_30" sourceRef="Gw_Join" targetRef="Gw_International" />
+    <bpmn:sequenceFlow id="Flow_SHP_31" name="Yes" sourceRef="Gw_International" targetRef="Task_Customs" />
+    <bpmn:sequenceFlow id="Flow_SHP_32" name="No" sourceRef="Gw_International" targetRef="Task_DestCheck" />
+    <bpmn:sequenceFlow id="Flow_SHP_33" sourceRef="Task_Customs" targetRef="Gw_Docs" />
+    <bpmn:sequenceFlow id="Flow_SHP_34" name="Yes" sourceRef="Gw_Docs" targetRef="Task_DestCheck" />
+    <bpmn:sequenceFlow id="Flow_SHP_35" name="E6: No" sourceRef="Gw_Docs" targetRef="Task_RequestDocs" />
+    <bpmn:sequenceFlow id="Flow_SHP_36" sourceRef="Task_RequestDocs" targetRef="Task_ReceiveDocs" />
+    <bpmn:sequenceFlow id="Flow_SHP_37" name="Resubmit" sourceRef="Task_ReceiveDocs" targetRef="Task_Customs" />
+    <bpmn:sequenceFlow id="Flow_SHP_38" sourceRef="Timer_Docs" targetRef="Task_ReturnSender" />
+    <bpmn:sequenceFlow id="Flow_SHP_39" sourceRef="Task_DestCheck" targetRef="Gw_Condition" />
+    <bpmn:sequenceFlow id="Flow_SHP_40" name="OK" sourceRef="Gw_Condition" targetRef="Task_NotifyRecipient" />
+    <bpmn:sequenceFlow id="Flow_SHP_41" name="E3: Damaged, not insured" sourceRef="Gw_Condition" targetRef="Task_InformDamage" />
+    <bpmn:sequenceFlow id="Flow_SHP_42" name="E3: Damaged, insured" sourceRef="Gw_Condition" targetRef="Sub_Claims" />
+    <bpmn:sequenceFlow id="Flow_SHP_43" sourceRef="Task_InformDamage" targetRef="Task_NotifyRecipient" />
+    <bpmn:sequenceFlow id="Flow_SHP_44" sourceRef="Sub_Claims" targetRef="End_Claim" />
+    <bpmn:sequenceFlow id="Flow_SHP_45" sourceRef="Task_NotifyRecipient" targetRef="Task_Deliver" />
+    <bpmn:sequenceFlow id="Flow_SHP_46" sourceRef="Task_Deliver" targetRef="Gw_Outcome" />
+    <bpmn:sequenceFlow id="Flow_SHP_47" name="Delivered" sourceRef="Gw_Outcome" targetRef="Task_Close" />
+    <bpmn:sequenceFlow id="Flow_SHP_48" name="E8: Refused / COD failed" sourceRef="Gw_Outcome" targetRef="Task_ReturnSender" />
+    <bpmn:sequenceFlow id="Flow_SHP_49" name="Not delivered" sourceRef="Gw_Outcome" targetRef="Gw_Reason" />
+    <bpmn:sequenceFlow id="Flow_SHP_50" name="E7: Retry (attempt &lt; 3)" sourceRef="Gw_Reason" targetRef="Task_NotifyRecipient">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${attempts &lt; 3}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_SHP_51" name="E7: 3rd attempt failed" sourceRef="Gw_Reason" targetRef="Task_HoldDepot" />
+    <bpmn:sequenceFlow id="Flow_SHP_52" name="E2: Address not found" sourceRef="Gw_Reason" targetRef="Task_ConfirmAddress" />
+    <bpmn:sequenceFlow id="Flow_SHP_53" sourceRef="Task_HoldDepot" targetRef="Gw_DepotWait" />
+    <bpmn:sequenceFlow id="Flow_SHP_54" sourceRef="Gw_DepotWait" targetRef="Catch_Collected" />
+    <bpmn:sequenceFlow id="Flow_SHP_55" sourceRef="Gw_DepotWait" targetRef="Catch_Expired" />
+    <bpmn:sequenceFlow id="Flow_SHP_56" sourceRef="Catch_Collected" targetRef="Task_Close" />
+    <bpmn:sequenceFlow id="Flow_SHP_57" sourceRef="Catch_Expired" targetRef="Task_ReturnSender" />
+    <bpmn:sequenceFlow id="Flow_SHP_58" sourceRef="Task_ReturnSender" targetRef="End_Returned" />
+    <bpmn:sequenceFlow id="Flow_SHP_59" sourceRef="Task_Close" targetRef="End_Delivered" />
+    <bpmn:sequenceFlow id="Flow_SHP_60" sourceRef="Task_ConfirmAddress" targetRef="Gw_Surcharge" />
+    <bpmn:sequenceFlow id="Flow_SHP_61" name="Yes" sourceRef="Gw_Surcharge" targetRef="Task_PaySurcharge" />
+    <bpmn:sequenceFlow id="Flow_SHP_62" name="No – re-attempt" sourceRef="Gw_Surcharge" targetRef="Task_NotifyRecipient" />
+    <bpmn:sequenceFlow id="Flow_SHP_63" name="Re-attempt" sourceRef="Task_PaySurcharge" targetRef="Task_NotifyRecipient" />
+    <bpmn:association id="Assoc_Comp_Charge_Task_Refund" associationDirection="One" sourceRef="Comp_Charge" targetRef="Task_Refund" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_SHP">
+    <bpmndi:BPMNPlane id="Plane_SHP" bpmnElement="Collab_SHP">
+      <bpmndi:BPMNShape id="Pool_SHP_di" bpmnElement="Pool_SHP" isHorizontal="true"><dc:Bounds x="110" y="40" width="4338" height="1625" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Shipper_di" bpmnElement="Lane_Shipper" isHorizontal="true"><dc:Bounds x="140" y="40" width="4308" height="250" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Control_di" bpmnElement="Lane_Control" isHorizontal="true"><dc:Bounds x="140" y="290" width="4308" height="375" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Pickup_di" bpmnElement="Lane_Pickup" isHorizontal="true"><dc:Bounds x="140" y="665" width="4308" height="125" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Hub_di" bpmnElement="Lane_Hub" isHorizontal="true"><dc:Bounds x="140" y="790" width="4308" height="375" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Delivery_di" bpmnElement="Lane_Delivery" isHorizontal="true"><dc:Bounds x="140" y="1165" width="4308" height="250" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Recipient_di" bpmnElement="Lane_Recipient" isHorizontal="true"><dc:Bounds x="140" y="1415" width="4308" height="125" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Claims_di" bpmnElement="Lane_Claims" isHorizontal="true"><dc:Bounds x="140" y="1540" width="4308" height="125" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Booking_di" bpmnElement="Start_Booking"><dc:Bounds x="230" y="84" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="192" y="126" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Book_di" bpmnElement="Task_Book"><dc:Bounds x="342" y="62" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Correct_di" bpmnElement="Task_Correct"><dc:Bounds x="652" y="188" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Rule_Validate_di" bpmnElement="Rule_Validate"><dc:Bounds x="498" y="312" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Valid_di" bpmnElement="Gw_Valid" isMarkerVisible="true"><dc:Bounds x="688" y="328" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="596" y="302" width="100" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Charge_di" bpmnElement="Task_Charge"><dc:Bounds x="808" y="312" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Refund_di" bpmnElement="Task_Refund"><dc:Bounds x="808" y="438" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Schedule_di" bpmnElement="Task_Schedule"><dc:Bounds x="962" y="312" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Throw_Refund_di" bpmnElement="Throw_Refund"><dc:Bounds x="1314" y="584" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1278" y="626" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Cancelled_di" bpmnElement="End_Cancelled"><dc:Bounds x="1314" y="460" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1278" y="500" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Tracking_di" bpmnElement="Task_Tracking"><dc:Bounds x="1582" y="562" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Customs_di" bpmnElement="Task_Customs"><dc:Bounds x="2512" y="438" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Docs_di" bpmnElement="Gw_Docs" isMarkerVisible="true"><dc:Bounds x="2702" y="452" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="2610" y="426" width="100" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_RequestDocs_di" bpmnElement="Task_RequestDocs"><dc:Bounds x="2668" y="562" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReceiveDocs_di" bpmnElement="Task_ReceiveDocs"><dc:Bounds x="2822" y="562" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Close_di" bpmnElement="Task_Close"><dc:Bounds x="3908" y="312" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Delivered_di" bpmnElement="End_Delivered"><dc:Bounds x="4104" y="334" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="4068" y="376" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Collect_di" bpmnElement="Task_Collect"><dc:Bounds x="1118" y="688" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Collected_di" bpmnElement="Gw_Collected" isMarkerVisible="true"><dc:Bounds x="1308" y="702" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1216" y="676" width="100" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Split_di" bpmnElement="Gw_Split"><dc:Bounds x="1462" y="702" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Scan_di" bpmnElement="Task_Scan"><dc:Bounds x="1582" y="688" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ManualScan_di" bpmnElement="Task_ManualScan"><dc:Bounds x="1582" y="812" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_MergeTransit_di" bpmnElement="Gw_MergeTransit" isMarkerVisible="true"><dc:Bounds x="1772" y="952" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_LineHaul_di" bpmnElement="Sub_LineHaul" isExpanded="false"><dc:Bounds x="1892" y="938" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Reroute_di" bpmnElement="Task_Reroute"><dc:Bounds x="1892" y="812" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_StopReturn_di" bpmnElement="Task_StopReturn"><dc:Bounds x="1892" y="1062" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Trace_di" bpmnElement="Sub_Trace" isExpanded="false"><dc:Bounds x="2048" y="1062" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Join_di" bpmnElement="Gw_Join"><dc:Bounds x="2238" y="952" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_International_di" bpmnElement="Gw_International" isMarkerVisible="true"><dc:Bounds x="2392" y="952" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="2300" y="926" width="100" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DestCheck_di" bpmnElement="Task_DestCheck"><dc:Bounds x="2978" y="938" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Condition_di" bpmnElement="Gw_Condition" isMarkerVisible="true"><dc:Bounds x="3168" y="952" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="3076" y="926" width="100" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_InformDamage_di" bpmnElement="Task_InformDamage"><dc:Bounds x="3132" y="812" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ReturnSender_di" bpmnElement="Task_ReturnSender"><dc:Bounds x="3752" y="812" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Returned_di" bpmnElement="End_Returned"><dc:Bounds x="3950" y="834" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="3912" y="876" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_NotifyRecipient_di" bpmnElement="Task_NotifyRecipient"><dc:Bounds x="3442" y="1188" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Deliver_di" bpmnElement="Task_Deliver"><dc:Bounds x="3598" y="1188" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Outcome_di" bpmnElement="Gw_Outcome" isMarkerVisible="true"><dc:Bounds x="3788" y="1202" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="3696" y="1176" width="100" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Reason_di" bpmnElement="Gw_Reason" isMarkerVisible="true"><dc:Bounds x="3788" y="1328" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="3696" y="1302" width="100" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_HoldDepot_di" bpmnElement="Task_HoldDepot"><dc:Bounds x="3908" y="1312" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_DepotWait_di" bpmnElement="Gw_DepotWait"><dc:Bounds x="4098" y="1328" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="4006" y="1302" width="100" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Catch_Collected_di" bpmnElement="Catch_Collected"><dc:Bounds x="4260" y="1334" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="4222" y="1376" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Catch_Expired_di" bpmnElement="Catch_Expired"><dc:Bounds x="4104" y="1210" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="4068" y="1250" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ConfirmAddress_di" bpmnElement="Task_ConfirmAddress"><dc:Bounds x="3752" y="1438" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gw_Surcharge_di" bpmnElement="Gw_Surcharge" isMarkerVisible="true"><dc:Bounds x="3942" y="1452" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="3850" y="1426" width="100" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_PaySurcharge_di" bpmnElement="Task_PaySurcharge"><dc:Bounds x="4062" y="1438" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DeclareLost_di" bpmnElement="Task_DeclareLost"><dc:Bounds x="2048" y="1562" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Lost_di" bpmnElement="End_Lost"><dc:Bounds x="2244" y="1584" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2208" y="1626" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Claims_di" bpmnElement="Sub_Claims" isExpanded="false"><dc:Bounds x="3132" y="1562" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Claim_di" bpmnElement="End_Claim"><dc:Bounds x="3330" y="1584" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="3292" y="1626" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Comp_Charge_di" bpmnElement="Comp_Charge"><dc:Bounds x="850" y="374" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="888" y="394" width="116" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_Docs_di" bpmnElement="Timer_Docs"><dc:Bounds x="2864" y="624" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2902" y="644" width="116" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Err_ScanBoundary_di" bpmnElement="Err_ScanBoundary"><dc:Bounds x="1624" y="750" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1662" y="770" width="116" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Msg_DelayB_di" bpmnElement="Msg_DelayB"><dc:Bounds x="1934" y="920" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1894" y="890" width="116" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Msg_CancelB_di" bpmnElement="Msg_CancelB"><dc:Bounds x="1904" y="1000" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1786" y="1020" width="116" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_NoScan_di" bpmnElement="Timer_NoScan"><dc:Bounds x="1964" y="1000" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2002" y="1020" width="116" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Timer_Trace_di" bpmnElement="Timer_Trace"><dc:Bounds x="2090" y="1124" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2128" y="1144" width="116" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_SHP_01_di" bpmnElement="Flow_SHP_01"><di:waypoint x="266" y="102" /><di:waypoint x="342" y="102" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_02_di" bpmnElement="Flow_SHP_02"><di:waypoint x="462" y="102" /><di:waypoint x="558" y="102" /><di:waypoint x="558" y="312" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_03_di" bpmnElement="Flow_SHP_03"><di:waypoint x="618" y="352" /><di:waypoint x="688" y="352" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_04_di" bpmnElement="Flow_SHP_04"><di:waypoint x="712" y="328" /><di:waypoint x="712" y="268" /><bpmndi:BPMNLabel><dc:Bounds x="718" y="298" width="36" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_05_di" bpmnElement="Flow_SHP_05"><di:waypoint x="712" y="188" /><di:waypoint x="712" y="165" /><di:waypoint x="635" y="165" /><di:waypoint x="635" y="290" /><di:waypoint x="558" y="290" /><di:waypoint x="558" y="312" /><bpmndi:BPMNLabel><dc:Bounds x="718" y="158" width="42" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_06_di" bpmnElement="Flow_SHP_06"><di:waypoint x="738" y="352" /><di:waypoint x="808" y="352" /><bpmndi:BPMNLabel><dc:Bounds x="744" y="332" width="30" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_07_di" bpmnElement="Flow_SHP_07"><di:waypoint x="928" y="352" /><di:waypoint x="962" y="352" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_08_di" bpmnElement="Flow_SHP_08"><di:waypoint x="1082" y="352" /><di:waypoint x="1178" y="352" /><di:waypoint x="1178" y="688" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_09_di" bpmnElement="Flow_SHP_09"><di:waypoint x="1238" y="728" /><di:waypoint x="1308" y="728" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_10_di" bpmnElement="Flow_SHP_10"><di:waypoint x="1358" y="728" /><di:waypoint x="1462" y="728" /><bpmndi:BPMNLabel><dc:Bounds x="1364" y="708" width="30" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_11_di" bpmnElement="Flow_SHP_11"><di:waypoint x="1332" y="752" /><di:waypoint x="1332" y="790" /><di:waypoint x="1100" y="790" /><di:waypoint x="1100" y="415" /><di:waypoint x="1022" y="415" /><di:waypoint x="1022" y="392" /><bpmndi:BPMNLabel><dc:Bounds x="1338" y="764" width="140" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_12_di" bpmnElement="Flow_SHP_12"><di:waypoint x="1332" y="702" /><di:waypoint x="1332" y="620" /><bpmndi:BPMNLabel><dc:Bounds x="1338" y="690" width="140" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_13_di" bpmnElement="Flow_SHP_13"><di:waypoint x="1332" y="584" /><di:waypoint x="1332" y="496" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_14_di" bpmnElement="Flow_SHP_14"><di:waypoint x="1512" y="728" /><di:waypoint x="1582" y="728" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_15_di" bpmnElement="Flow_SHP_15"><di:waypoint x="1488" y="702" /><di:waypoint x="1488" y="602" /><di:waypoint x="1582" y="602" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_16_di" bpmnElement="Flow_SHP_16"><di:waypoint x="1702" y="728" /><di:waypoint x="1798" y="728" /><di:waypoint x="1798" y="952" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_17_di" bpmnElement="Flow_SHP_17"><di:waypoint x="1642" y="786" /><di:waypoint x="1642" y="812" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_18_di" bpmnElement="Flow_SHP_18"><di:waypoint x="1702" y="852" /><di:waypoint x="1798" y="852" /><di:waypoint x="1798" y="952" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_19_di" bpmnElement="Flow_SHP_19"><di:waypoint x="1822" y="978" /><di:waypoint x="1892" y="978" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_20_di" bpmnElement="Flow_SHP_20"><di:waypoint x="1952" y="920" /><di:waypoint x="1952" y="892" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_21_di" bpmnElement="Flow_SHP_21"><di:waypoint x="1892" y="852" /><di:waypoint x="1875" y="852" /><di:waypoint x="1875" y="915" /><di:waypoint x="1798" y="915" /><di:waypoint x="1798" y="952" /><bpmndi:BPMNLabel><dc:Bounds x="1838" y="832" width="36" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_22_di" bpmnElement="Flow_SHP_22"><di:waypoint x="1922" y="1036" /><di:waypoint x="1922" y="1040" /><di:waypoint x="1952" y="1040" /><di:waypoint x="1952" y="1062" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_23_di" bpmnElement="Flow_SHP_23"><di:waypoint x="1952" y="1142" /><di:waypoint x="1952" y="1165" /><di:waypoint x="1410" y="1165" /><di:waypoint x="1410" y="665" /><di:waypoint x="1332" y="665" /><di:waypoint x="1332" y="620" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_24_di" bpmnElement="Flow_SHP_24"><di:waypoint x="1982" y="1036" /><di:waypoint x="1982" y="1049" /><di:waypoint x="2030" y="1049" /><di:waypoint x="2030" y="1102" /><di:waypoint x="2048" y="1102" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_25_di" bpmnElement="Flow_SHP_25"><di:waypoint x="2108" y="1062" /><di:waypoint x="2108" y="1031" /><di:waypoint x="1798" y="1031" /><di:waypoint x="1798" y="1002" /><bpmndi:BPMNLabel><dc:Bounds x="2114" y="1032" width="84" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_26_di" bpmnElement="Flow_SHP_26"><di:waypoint x="2108" y="1160" /><di:waypoint x="2108" y="1562" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_27_di" bpmnElement="Flow_SHP_27"><di:waypoint x="2168" y="1602" /><di:waypoint x="2244" y="1602" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_28_di" bpmnElement="Flow_SHP_28"><di:waypoint x="2012" y="978" /><di:waypoint x="2238" y="978" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_29_di" bpmnElement="Flow_SHP_29"><di:waypoint x="1702" y="602" /><di:waypoint x="2262" y="602" /><di:waypoint x="2262" y="952" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_30_di" bpmnElement="Flow_SHP_30"><di:waypoint x="2288" y="978" /><di:waypoint x="2392" y="978" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_31_di" bpmnElement="Flow_SHP_31"><di:waypoint x="2418" y="952" /><di:waypoint x="2418" y="478" /><di:waypoint x="2512" y="478" /><bpmndi:BPMNLabel><dc:Bounds x="2424" y="922" width="30" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_32_di" bpmnElement="Flow_SHP_32"><di:waypoint x="2442" y="978" /><di:waypoint x="2978" y="978" /><bpmndi:BPMNLabel><dc:Bounds x="2448" y="958" width="30" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_33_di" bpmnElement="Flow_SHP_33"><di:waypoint x="2632" y="478" /><di:waypoint x="2702" y="478" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_34_di" bpmnElement="Flow_SHP_34"><di:waypoint x="2752" y="478" /><di:waypoint x="3038" y="478" /><di:waypoint x="3038" y="938" /><bpmndi:BPMNLabel><dc:Bounds x="2758" y="458" width="30" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_35_di" bpmnElement="Flow_SHP_35"><di:waypoint x="2728" y="502" /><di:waypoint x="2728" y="562" /><bpmndi:BPMNLabel><dc:Bounds x="2734" y="526" width="36" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_36_di" bpmnElement="Flow_SHP_36"><di:waypoint x="2788" y="602" /><di:waypoint x="2822" y="602" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_37_di" bpmnElement="Flow_SHP_37"><di:waypoint x="2882" y="562" /><di:waypoint x="2882" y="540" /><di:waypoint x="2572" y="540" /><di:waypoint x="2572" y="518" /><bpmndi:BPMNLabel><dc:Bounds x="2888" y="532" width="48" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_38_di" bpmnElement="Flow_SHP_38"><di:waypoint x="2882" y="660" /><di:waypoint x="2882" y="674" /><di:waypoint x="3735" y="674" /><di:waypoint x="3735" y="799" /><di:waypoint x="3812" y="799" /><di:waypoint x="3812" y="812" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_39_di" bpmnElement="Flow_SHP_39"><di:waypoint x="3098" y="978" /><di:waypoint x="3168" y="978" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_40_di" bpmnElement="Flow_SHP_40"><di:waypoint x="3218" y="978" /><di:waypoint x="3502" y="978" /><di:waypoint x="3502" y="1188" /><bpmndi:BPMNLabel><dc:Bounds x="3224" y="958" width="30" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_41_di" bpmnElement="Flow_SHP_41"><di:waypoint x="3192" y="952" /><di:waypoint x="3192" y="892" /><bpmndi:BPMNLabel><dc:Bounds x="3198" y="922" width="140" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_42_di" bpmnElement="Flow_SHP_42"><di:waypoint x="3192" y="1002" /><di:waypoint x="3192" y="1562" /><bpmndi:BPMNLabel><dc:Bounds x="3198" y="1026" width="120" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_43_di" bpmnElement="Flow_SHP_43"><di:waypoint x="3252" y="852" /><di:waypoint x="3502" y="852" /><di:waypoint x="3502" y="1188" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_44_di" bpmnElement="Flow_SHP_44"><di:waypoint x="3252" y="1602" /><di:waypoint x="3330" y="1602" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_45_di" bpmnElement="Flow_SHP_45"><di:waypoint x="3562" y="1228" /><di:waypoint x="3598" y="1228" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_46_di" bpmnElement="Flow_SHP_46"><di:waypoint x="3718" y="1228" /><di:waypoint x="3788" y="1228" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_47_di" bpmnElement="Flow_SHP_47"><di:waypoint x="3838" y="1228" /><di:waypoint x="3890" y="1228" /><di:waypoint x="3890" y="352" /><di:waypoint x="3908" y="352" /><bpmndi:BPMNLabel><dc:Bounds x="3844" y="1208" width="54" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_48_di" bpmnElement="Flow_SHP_48"><di:waypoint x="3812" y="1202" /><di:waypoint x="3812" y="892" /><bpmndi:BPMNLabel><dc:Bounds x="3818" y="1172" width="140" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_49_di" bpmnElement="Flow_SHP_49"><di:waypoint x="3812" y="1252" /><di:waypoint x="3812" y="1328" /><bpmndi:BPMNLabel><dc:Bounds x="3818" y="1276" width="78" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_50_di" bpmnElement="Flow_SHP_50"><di:waypoint x="3788" y="1352" /><di:waypoint x="3744" y="1352" /><di:waypoint x="3744" y="1290" /><di:waypoint x="3502" y="1290" /><di:waypoint x="3502" y="1268" /><bpmndi:BPMNLabel><dc:Bounds x="3644" y="1332" width="138" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_51_di" bpmnElement="Flow_SHP_51"><di:waypoint x="3838" y="1352" /><di:waypoint x="3908" y="1352" /><bpmndi:BPMNLabel><dc:Bounds x="3844" y="1332" width="132" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_52_di" bpmnElement="Flow_SHP_52"><di:waypoint x="3812" y="1378" /><di:waypoint x="3812" y="1438" /><bpmndi:BPMNLabel><dc:Bounds x="3818" y="1400" width="126" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_53_di" bpmnElement="Flow_SHP_53"><di:waypoint x="4028" y="1352" /><di:waypoint x="4098" y="1352" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_54_di" bpmnElement="Flow_SHP_54"><di:waypoint x="4148" y="1352" /><di:waypoint x="4260" y="1352" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_55_di" bpmnElement="Flow_SHP_55"><di:waypoint x="4122" y="1328" /><di:waypoint x="4122" y="1246" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_56_di" bpmnElement="Flow_SHP_56"><di:waypoint x="4278" y="1334" /><di:waypoint x="4278" y="1299" /><di:waypoint x="4045" y="1299" /><di:waypoint x="4045" y="424" /><di:waypoint x="3968" y="424" /><di:waypoint x="3968" y="392" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_57_di" bpmnElement="Flow_SHP_57"><di:waypoint x="4122" y="1210" /><di:waypoint x="4122" y="1174" /><di:waypoint x="3899" y="1174" /><di:waypoint x="3899" y="924" /><di:waypoint x="3812" y="924" /><di:waypoint x="3812" y="892" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_58_di" bpmnElement="Flow_SHP_58"><di:waypoint x="3872" y="852" /><di:waypoint x="3950" y="852" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_59_di" bpmnElement="Flow_SHP_59"><di:waypoint x="4028" y="352" /><di:waypoint x="4104" y="352" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_60_di" bpmnElement="Flow_SHP_60"><di:waypoint x="3872" y="1478" /><di:waypoint x="3942" y="1478" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_61_di" bpmnElement="Flow_SHP_61"><di:waypoint x="3992" y="1478" /><di:waypoint x="4062" y="1478" /><bpmndi:BPMNLabel><dc:Bounds x="3998" y="1458" width="30" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_62_di" bpmnElement="Flow_SHP_62"><di:waypoint x="3968" y="1452" /><di:waypoint x="3968" y="1415" /><di:waypoint x="3580" y="1415" /><di:waypoint x="3580" y="1281" /><di:waypoint x="3502" y="1281" /><di:waypoint x="3502" y="1268" /><bpmndi:BPMNLabel><dc:Bounds x="3974" y="1422" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_63_di" bpmnElement="Flow_SHP_63"><di:waypoint x="4122" y="1438" /><di:waypoint x="4122" y="1424" /><di:waypoint x="3589" y="1424" /><di:waypoint x="3589" y="1308" /><di:waypoint x="3502" y="1308" /><di:waypoint x="3502" y="1268" /><bpmndi:BPMNLabel><dc:Bounds x="4128" y="1408" width="60" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_Comp_Charge_Task_Refund_di" bpmnElement="Assoc_Comp_Charge_Task_Refund"><di:waypoint x="868" y="410" /><di:waypoint x="868" y="438" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Diagram_Sub_LineHaul">
+    <bpmndi:BPMNPlane id="Plane_Sub_LineHaul" bpmnElement="Sub_LineHaul">
+      <bpmndi:BPMNShape id="LH_Start_di" bpmnElement="LH_Start"><dc:Bounds x="230" y="84" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="192" y="126" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LH_Load_di" bpmnElement="LH_Load"><dc:Bounds x="342" y="62" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LH_Unload_di" bpmnElement="LH_Unload"><dc:Bounds x="498" y="62" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LH_End_di" bpmnElement="LH_End"><dc:Bounds x="694" y="84" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="658" y="126" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_SHP_64_di" bpmnElement="Flow_SHP_64"><di:waypoint x="266" y="102" /><di:waypoint x="342" y="102" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_65_di" bpmnElement="Flow_SHP_65"><di:waypoint x="462" y="102" /><di:waypoint x="498" y="102" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_66_di" bpmnElement="Flow_SHP_66"><di:waypoint x="618" y="102" /><di:waypoint x="694" y="102" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Diagram_Sub_Trace">
+    <bpmndi:BPMNPlane id="Plane_Sub_Trace" bpmnElement="Sub_Trace">
+      <bpmndi:BPMNShape id="TR_Start_di" bpmnElement="TR_Start"><dc:Bounds x="230" y="84" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="192" y="126" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TR_Search_di" bpmnElement="TR_Search"><dc:Bounds x="342" y="62" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TR_End_di" bpmnElement="TR_End"><dc:Bounds x="540" y="84" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="502" y="126" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_SHP_67_di" bpmnElement="Flow_SHP_67"><di:waypoint x="266" y="102" /><di:waypoint x="342" y="102" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_68_di" bpmnElement="Flow_SHP_68"><di:waypoint x="462" y="102" /><di:waypoint x="540" y="102" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="Diagram_Sub_Claims">
+    <bpmndi:BPMNPlane id="Plane_Sub_Claims" bpmnElement="Sub_Claims">
+      <bpmndi:BPMNShape id="CL_Start_di" bpmnElement="CL_Start"><dc:Bounds x="230" y="84" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="192" y="126" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CL_Assess_di" bpmnElement="CL_Assess"><dc:Bounds x="342" y="62" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CL_Settle_di" bpmnElement="CL_Settle"><dc:Bounds x="498" y="62" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="CL_End_di" bpmnElement="CL_End"><dc:Bounds x="694" y="84" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="658" y="126" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_SHP_69_di" bpmnElement="Flow_SHP_69"><di:waypoint x="266" y="102" /><di:waypoint x="342" y="102" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_70_di" bpmnElement="Flow_SHP_70"><di:waypoint x="462" y="102" /><di:waypoint x="498" y="102" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_SHP_71_di" bpmnElement="Flow_SHP_71"><di:waypoint x="618" y="102" /><di:waypoint x="694" y="102" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
