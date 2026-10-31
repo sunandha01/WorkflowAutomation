@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_LoanDecision" name="Loan Decision" namespace="http://camunda.org/schema/1.0/dmn" exporter="Camunda Modeler" exporterVersion="5.49.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <decision id="loan-decision" name="Loan decision">
+    <decisionTable id="DecisionTable_Loan" hitPolicy="FIRST">
+      <input id="Input_CreditScore" label="Credit score">
+        <inputExpression id="InputExpr_CreditScore" typeRef="number">
+          <text>creditScore</text>
+        </inputExpression>
+      </input>
+      <input id="Input_Ratio" label="Payment-to-income ratio">
+        <inputExpression id="InputExpr_Ratio" typeRef="number">
+          <text>paymentToIncomeRatio</text>
+        </inputExpression>
+      </input>
+      <input id="Input_Amount" label="Loan amount">
+        <inputExpression id="InputExpr_Amount" typeRef="number">
+          <text>loanAmount</text>
+        </inputExpression>
+      </input>
+      <output id="Output_Decision" label="Decision" name="decision" typeRef="string">
+        <outputValues id="OutputValues_Decision">
+          <text>"Approved","Rejected","Manual Review"</text>
+        </outputValues>
+      </output>
+      <rule id="Rule_LowScore">
+        <description>R1: poor credit score</description>
+        <inputEntry id="R1_Score">
+          <text>&lt; 550</text>
+        </inputEntry>
+        <inputEntry id="R1_Ratio">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="R1_Amount">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="R1_Out">
+          <text>"Rejected"</text>
+        </outputEntry>
+      </rule>
+      <rule id="Rule_Unaffordable">
+        <description>R2: installment above 50% of income</description>
+        <inputEntry id="R2_Score">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="R2_Ratio">
+          <text>&gt; 0.5</text>
+        </inputEntry>
+        <inputEntry id="R2_Amount">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="R2_Out">
+          <text>"Rejected"</text>
+        </outputEntry>
+      </rule>
+      <rule id="Rule_Approve">
+        <description>R3: good score, affordable, up to 50000</description>
+        <inputEntry id="R3_Score">
+          <text>&gt;= 700</text>
+        </inputEntry>
+        <inputEntry id="R3_Ratio">
+          <text>&lt;= 0.35</text>
+        </inputEntry>
+        <inputEntry id="R3_Amount">
+          <text>&lt;= 50000</text>
+        </inputEntry>
+        <outputEntry id="R3_Out">
+          <text>"Approved"</text>
+        </outputEntry>
+      </rule>
+      <rule id="Rule_Review">
+        <description>R4: everything else needs a human</description>
+        <inputEntry id="R4_Score">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="R4_Ratio">
+          <text>-</text>
+        </inputEntry>
+        <inputEntry id="R4_Amount">
+          <text>-</text>
+        </inputEntry>
+        <outputEntry id="R4_Out">
+          <text>"Manual Review"</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_Loan">
+      <dmndi:DMNShape id="DMNShape_LoanDecision" dmnElementRef="loan-decision">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

@@ -1,0 +1,4 @@
+{
+  "processDefinitionId": "loan-approval",
+  "variables": { "applicantId": "A-600", "applicantName": "Test Applicant Six", "age": 40, "loanAmount": 18000, "loanTermMonths": 36 }
+}

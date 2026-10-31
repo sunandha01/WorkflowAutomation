@@ -1,0 +1,43 @@
+{
+  "components": [
+    {
+      "text": "# Manual loan review\n\n**Applicant:** {{applicantName}} ({{applicantId}})\n\n**Loan amount:** {{loanAmount}} over {{loanTermMonths}} months\n\n**Monthly income:** {{monthlyIncome}}\n\n**Payment-to-income ratio:** {{paymentToIncomeRatio}}\n\n**Credit score:** {{creditScore}}\n\n**DMN decision:** {{decision}}\n\n**Credit API error:** {{creditApiError}}",
+      "id": "Text_Summary",
+      "type": "text"
+    },
+    {
+      "label": "Your decision",
+      "values": [
+        {
+          "label": "Approve",
+          "value": "Approved"
+        },
+        {
+          "label": "Reject",
+          "value": "Rejected"
+        }
+      ],
+      "id": "Field_ReviewDecision",
+      "type": "radio",
+      "key": "reviewDecision",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Reviewer comment",
+      "id": "Field_ReviewComment",
+      "type": "textarea",
+      "key": "reviewComment"
+    }
+  ],
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.49.0"
+  },
+  "schemaVersion": 19,
+  "id": "loan-manual-review",
+  "type": "default"
+}
