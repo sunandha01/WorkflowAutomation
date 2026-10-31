@@ -1,0 +1,32 @@
+{
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.49.0" },
+  "schemaVersion": 16,
+  "id": "urgent-assessment",
+  "type": "default",
+  "components": [
+    {
+      "id": "Text_Summary",
+      "type": "text",
+      "text": "# URGENT: immediate clinical assessment\n\n**Patient (synthetic):** {{patientRef}}\n\n**Symptoms:** {{symptomsSummary}}\n\n**Chest pain:** {{chestPain}} · **Breathing difficulty:** {{breathingDifficulty}} · **Pain score:** {{painScore}} / 10\n\n**Triage category:** {{urgencyCategory}}"
+    },
+    {
+      "id": "Field_AssessmentOutcome",
+      "type": "radio",
+      "key": "assessmentOutcome",
+      "label": "Assessment outcome (simulated)",
+      "values": [
+        { "label": "Seen by on-call clinician", "value": "SEEN_BY_CLINICIAN" },
+        { "label": "Escalated to emergency department", "value": "ESCALATED_TO_ED" }
+      ],
+      "validate": { "required": true }
+    },
+    {
+      "id": "Field_ClinicianNotes",
+      "type": "textarea",
+      "key": "clinicianNotes",
+      "label": "Notes"
+    }
+  ]
+}

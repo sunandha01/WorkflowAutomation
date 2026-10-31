@@ -1,0 +1,4 @@
+{
+  "processDefinitionId": "hospital-appointment",
+  "variables": { "patientRef": "PT-1005", "preferredDate": "2026-11-04", "preferredSession": "AFTERNOON", "symptomsSummary": "Persistent mild cough", "chestPain": false, "breathingDifficulty": false, "painScore": 2, "symptomDays": 6 }
+}

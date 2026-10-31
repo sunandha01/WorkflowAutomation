@@ -1,0 +1,33 @@
+{
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.49.0" },
+  "schemaVersion": 16,
+  "id": "staff-review",
+  "type": "default",
+  "components": [
+    {
+      "id": "Text_Summary",
+      "type": "text",
+      "text": "# Staff review\n\n**Patient (synthetic):** {{patientRef}}\n\n**Symptoms:** {{symptomsSummary}}\n\n**Pain score:** {{painScore}} / 10, **for** {{symptomDays}} days\n\n**Triage category:** {{urgencyCategory}}\n\n**Preferred appointment:** {{preferredDate}} {{preferredSession}}\n\n**Slots found:** {{slotCount}}"
+    },
+    {
+      "id": "Field_BookingStatus",
+      "type": "select",
+      "key": "bookingStatus",
+      "label": "Outcome",
+      "values": [
+        { "label": "Booked manually (priority slot)", "value": "BOOKED_MANUALLY" },
+        { "label": "Added to waitlist", "value": "WAITLISTED" },
+        { "label": "Referred to another clinic", "value": "REFERRED" }
+      ],
+      "validate": { "required": true }
+    },
+    {
+      "id": "Field_StaffNotes",
+      "type": "textarea",
+      "key": "staffNotes",
+      "label": "Staff notes"
+    }
+  ]
+}

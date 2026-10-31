@@ -1,0 +1,4 @@
+{
+  "processDefinitionId": "hospital-appointment",
+  "variables": { "patientRef": "PT-1004", "preferredDate": "2026-11-06", "preferredSession": "MORNING", "symptomsSummary": "Routine follow-up for mild rash", "chestPain": false, "breathingDifficulty": false, "painScore": 1, "symptomDays": 5 }
+}

@@ -1,0 +1,4 @@
+{
+  "processDefinitionId": "hospital-appointment",
+  "variables": { "patientRef": "PT-1001", "preferredDate": "2026-11-03", "preferredSession": "MORNING", "symptomsSummary": "Mild seasonal allergy, sneezing and itchy eyes", "chestPain": false, "breathingDifficulty": false, "painScore": 2, "symptomDays": 3 }
+}

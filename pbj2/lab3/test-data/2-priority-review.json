@@ -1,0 +1,4 @@
+{
+  "processDefinitionId": "hospital-appointment",
+  "variables": { "patientRef": "PT-1002", "preferredDate": "2026-11-04", "preferredSession": "AFTERNOON", "symptomsSummary": "Severe lower back pain after lifting", "chestPain": false, "breathingDifficulty": false, "painScore": 8, "symptomDays": 2 }
+}

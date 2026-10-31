@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
+             xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
+             xmlns:modeler="http://camunda.org/schema/modeler/1.0"
+             id="Definitions_Triage" name="Triage Category" namespace="http://camunda.org/schema/1.0/dmn"
+             exporter="Camunda Modeler" exporterVersion="5.49.0"
+             modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <decision id="triage-category" name="Triage category">
+    <decisionTable id="DecisionTable_Triage" hitPolicy="FIRST">
+      <input id="Input_ChestPain" label="Chest pain">
+        <inputExpression id="InputExpr_ChestPain" typeRef="boolean">
+          <text>chestPain</text>
+        </inputExpression>
+      </input>
+      <input id="Input_Breathing" label="Breathing difficulty">
+        <inputExpression id="InputExpr_Breathing" typeRef="boolean">
+          <text>breathingDifficulty</text>
+        </inputExpression>
+      </input>
+      <input id="Input_Pain" label="Pain score (0-10)">
+        <inputExpression id="InputExpr_Pain" typeRef="number">
+          <text>painScore</text>
+        </inputExpression>
+      </input>
+      <input id="Input_Days" label="Symptom days">
+        <inputExpression id="InputExpr_Days" typeRef="number">
+          <text>symptomDays</text>
+        </inputExpression>
+      </input>
+      <output id="Output_Category" label="Urgency category" name="urgencyCategory" typeRef="string">
+        <outputValues id="OutputValues_Category">
+          <text>"Urgent Assessment","Priority Review","Routine"</text>
+        </outputValues>
+      </output>
+      <rule id="Rule_ChestPain">
+        <description>R1: chest pain needs immediate assessment</description>
+        <inputEntry id="R1_Chest"><text>true</text></inputEntry>
+        <inputEntry id="R1_Breath"><text>-</text></inputEntry>
+        <inputEntry id="R1_Pain"><text>-</text></inputEntry>
+        <inputEntry id="R1_Days"><text>-</text></inputEntry>
+        <outputEntry id="R1_Out"><text>"Urgent Assessment"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Breathing">
+        <description>R2: breathing difficulty needs immediate assessment</description>
+        <inputEntry id="R2_Chest"><text>-</text></inputEntry>
+        <inputEntry id="R2_Breath"><text>true</text></inputEntry>
+        <inputEntry id="R2_Pain"><text>-</text></inputEntry>
+        <inputEntry id="R2_Days"><text>-</text></inputEntry>
+        <outputEntry id="R2_Out"><text>"Urgent Assessment"</text></outputEntry>
+      </rule>
+      <rule id="Rule_HighPain">
+        <description>R3: severe pain is reviewed by staff first</description>
+        <inputEntry id="R3_Chest"><text>-</text></inputEntry>
+        <inputEntry id="R3_Breath"><text>-</text></inputEntry>
+        <inputEntry id="R3_Pain"><text>&gt;= 7</text></inputEntry>
+        <inputEntry id="R3_Days"><text>-</text></inputEntry>
+        <outputEntry id="R3_Out"><text>"Priority Review"</text></outputEntry>
+      </rule>
+      <rule id="Rule_LongSymptoms">
+        <description>R4: symptoms lasting more than 14 days are reviewed by staff</description>
+        <inputEntry id="R4_Chest"><text>-</text></inputEntry>
+        <inputEntry id="R4_Breath"><text>-</text></inputEntry>
+        <inputEntry id="R4_Pain"><text>-</text></inputEntry>
+        <inputEntry id="R4_Days"><text>&gt; 14</text></inputEntry>
+        <outputEntry id="R4_Out"><text>"Priority Review"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Routine">
+        <description>R5: everything else is routine</description>
+        <inputEntry id="R5_Chest"><text>-</text></inputEntry>
+        <inputEntry id="R5_Breath"><text>-</text></inputEntry>
+        <inputEntry id="R5_Pain"><text>-</text></inputEntry>
+        <inputEntry id="R5_Days"><text>-</text></inputEntry>
+        <outputEntry id="R5_Out"><text>"Routine"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_Triage">
+      <dmndi:DMNShape id="DMNShape_Triage" dmnElementRef="triage-category">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

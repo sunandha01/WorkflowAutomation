@@ -1,0 +1,4 @@
+{
+  "processDefinitionId": "hospital-appointment",
+  "variables": { "patientRef": "PT-1003", "preferredDate": "2026-11-03", "preferredSession": "MORNING", "symptomsSummary": "Sudden chest tightness", "chestPain": true, "breathingDifficulty": false, "painScore": 6, "symptomDays": 1 }
+}
