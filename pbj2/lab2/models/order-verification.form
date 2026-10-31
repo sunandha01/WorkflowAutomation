@@ -1,0 +1,32 @@
+{
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": { "name": "Camunda Modeler", "version": "5.49.0" },
+  "schemaVersion": 16,
+  "id": "order-verification",
+  "type": "default",
+  "components": [
+    {
+      "id": "Text_Summary",
+      "type": "text",
+      "text": "# High-value order verification\n\n**Customer:** {{customerRef}} ({{customerCategory}})\n\n**Product:** {{productName}} ({{productId}}) x {{quantity}}\n\n**Order total:** {{orderTotal}}\n\n**Delivery:** {{deliveryPreference}}, priority {{deliveryPriority}}"
+    },
+    {
+      "id": "Field_VerificationDecision",
+      "type": "radio",
+      "key": "verificationDecision",
+      "label": "Verification result",
+      "values": [
+        { "label": "Approve order", "value": "APPROVED" },
+        { "label": "Reject order", "value": "REJECTED" }
+      ],
+      "validate": { "required": true }
+    },
+    {
+      "id": "Field_VerificationComment",
+      "type": "textarea",
+      "key": "verificationComment",
+      "label": "Comment"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "processDefinitionId": "order-processing",
+  "variables": { "customerRef": "C-100", "customerCategory": "REGULAR", "productId": "P-100", "quantity": 2, "deliveryPreference": "STANDARD", "paymentToken": "tok_ok_visa" }
+}

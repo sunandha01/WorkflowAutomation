@@ -1,0 +1,4 @@
+{
+  "processDefinitionId": "order-processing",
+  "variables": { "customerRef": "C-300", "customerCategory": "GOLD", "productId": "P-100", "quantity": 4, "deliveryPreference": "STANDARD", "paymentToken": "tok_declined" }
+}

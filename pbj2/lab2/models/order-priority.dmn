@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
+             xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
+             xmlns:modeler="http://camunda.org/schema/modeler/1.0"
+             id="Definitions_OrderPriority" name="Order Priority" namespace="http://camunda.org/schema/1.0/dmn"
+             exporter="Camunda Modeler" exporterVersion="5.49.0"
+             modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <decision id="order-priority" name="Order priority">
+    <decisionTable id="DecisionTable_Priority" hitPolicy="FIRST">
+      <input id="Input_Delivery" label="Delivery preference">
+        <inputExpression id="InputExpr_Delivery" typeRef="string">
+          <text>deliveryPreference</text>
+        </inputExpression>
+      </input>
+      <input id="Input_Category" label="Customer category">
+        <inputExpression id="InputExpr_Category" typeRef="string">
+          <text>customerCategory</text>
+        </inputExpression>
+      </input>
+      <input id="Input_Total" label="Order total">
+        <inputExpression id="InputExpr_Total" typeRef="number">
+          <text>orderTotal</text>
+        </inputExpression>
+      </input>
+      <output id="Output_Priority" label="Delivery priority" name="deliveryPriority" typeRef="string">
+        <outputValues id="OutputValues_Priority">
+          <text>"HIGH","MEDIUM","LOW"</text>
+        </outputValues>
+      </output>
+      <rule id="Rule_Express">
+        <description>R1: express delivery is always high priority</description>
+        <inputEntry id="R1_Delivery"><text>"EXPRESS"</text></inputEntry>
+        <inputEntry id="R1_Category"><text>-</text></inputEntry>
+        <inputEntry id="R1_Total"><text>-</text></inputEntry>
+        <outputEntry id="R1_Out"><text>"HIGH"</text></outputEntry>
+      </rule>
+      <rule id="Rule_GoldBig">
+        <description>R2: gold customer with order of 1000 or more</description>
+        <inputEntry id="R2_Delivery"><text>-</text></inputEntry>
+        <inputEntry id="R2_Category"><text>"GOLD"</text></inputEntry>
+        <inputEntry id="R2_Total"><text>&gt;= 1000</text></inputEntry>
+        <outputEntry id="R2_Out"><text>"HIGH"</text></outputEntry>
+      </rule>
+      <rule id="Rule_GoldOrBig">
+        <description>R3: other gold customers</description>
+        <inputEntry id="R3_Delivery"><text>-</text></inputEntry>
+        <inputEntry id="R3_Category"><text>"GOLD"</text></inputEntry>
+        <inputEntry id="R3_Total"><text>-</text></inputEntry>
+        <outputEntry id="R3_Out"><text>"MEDIUM"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Big">
+        <description>R4: regular customer with order of 1000 or more</description>
+        <inputEntry id="R4_Delivery"><text>-</text></inputEntry>
+        <inputEntry id="R4_Category"><text>-</text></inputEntry>
+        <inputEntry id="R4_Total"><text>&gt;= 1000</text></inputEntry>
+        <outputEntry id="R4_Out"><text>"MEDIUM"</text></outputEntry>
+      </rule>
+      <rule id="Rule_Default">
+        <description>R5: everything else</description>
+        <inputEntry id="R5_Delivery"><text>-</text></inputEntry>
+        <inputEntry id="R5_Category"><text>-</text></inputEntry>
+        <inputEntry id="R5_Total"><text>-</text></inputEntry>
+        <outputEntry id="R5_Out"><text>"LOW"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="DMNDiagram_Priority">
+      <dmndi:DMNShape id="DMNShape_Priority" dmnElementRef="order-priority">
+        <dc:Bounds height="80" width="180" x="160" y="100" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>
