@@ -68,6 +68,7 @@ These are predefined educational rules. Red-flag indicators come first, then sev
 
 ## REST Connector (Check appointment slots)
 
+* Template: REST Outbound Connector (`io.camunda.connectors.HttpJson.v2`, version 12)
 * `GET ="http://localhost:8092/api/slots?department=" + department + "&date=" + preferredDate + "&session=" + preferredSession`, no auth, with retries 3 and backoff PT5S
 * Result expression: `={availableSlots: response.body.slots, slotCount: count(response.body.slots)}`
 

@@ -2,8 +2,8 @@ package com.example.loan;
 
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -16,9 +16,10 @@ public class MockCreditApi {
   private static final Map<String, Integer> SCORES =
       Map.of("A-100", 780, "A-200", 480, "A-300", 640, "A-600", 760);
 
-  @GetMapping("/api/credit-score/{applicantId}")
-  public ResponseEntity<Map<String, Object>> creditScore(@PathVariable String applicantId)
+  @PostMapping("/api/credit-check")
+  public ResponseEntity<Map<String, Object>> creditCheck(@RequestBody Map<String, Object> application)
       throws InterruptedException {
+    String applicantId = String.valueOf(application.get("applicantId"));
     if (applicantId.startsWith("ERR")) {
       return ResponseEntity.status(503).body(Map.of("error", "Credit bureau unavailable"));
     }

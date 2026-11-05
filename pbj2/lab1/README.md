@@ -10,7 +10,7 @@ All data is synthetic. There are no real credentials or personal data.
 | `models/loan-decision.dmn` | Decision table `loan-decision` |
 | `models/loan-manual-review.form` | Tasklist form for the manual review |
 | `src/main/java/.../ValidateApplicantWorker.java` | Spring Boot job worker (`validate-applicant`) |
-| `src/main/java/.../MockCreditApi.java` | Mock credit-assessment API (`GET /api/credit-score/{applicantId}`) |
+| `src/main/java/.../MockCreditApi.java` | Mock credit-assessment API (`POST /api/credit-check`) |
 | `test-data/*.json` | One request body per test scenario |
 
 ## Architecture
@@ -39,7 +39,7 @@ Start ─► Validate applicant (Java worker) ─► Valid? ─no─► Invalid 
 1. Install **Java 21**, **Camunda Desktop Modeler** and **Camunda 8 Run** 8.8.x (the client library in `pom.xml` is 8.8.32).
 2. Start c8run: `./start.sh` in its folder. Operate is at <http://localhost:8080/operate> and Tasklist at <http://localhost:8080/tasklist> (`demo` / `demo`).
 3. Open this folder in IntelliJ as a Maven project and run `LoanApplication`. Alternatively run `mvn spring-boot:run`.
-4. Check the mock API: `curl http://localhost:8090/api/credit-score/A-100`
+4. Check the mock API: `curl -X POST http://localhost:8090/api/credit-check -H "Content-Type: application/json" -d '{"applicantId":"A-100"}'`
 5. In Desktop Modeler, open the three files in `models/`. Deploy each one using the rocket icon → *Camunda 8 Self-Managed* → `http://localhost:8080`. Deploy the DMN and the form first, then the BPMN.
 
 ## Starting instances
@@ -77,7 +77,10 @@ Sample evaluations:
 
 Settings in the *Credit assessment (REST)* task:
 
-* Method `GET`, URL `="http://localhost:8090/api/credit-score/" + applicantId`, no auth, read timeout 5 s
+* Template: REST Outbound Connector (`io.camunda.connectors.HttpJson.v2`, version 12)
+* Method `POST`, URL `http://localhost:8090/api/credit-check`, no auth, read timeout 5 s
+* Request body: `={applicantId: applicantId, applicantName: applicantName, loanAmount: loanAmount, monthlyIncome: monthlyIncome, loanTermMonths: loanTermMonths}`
+* Result variable: `creditCheckResponse` (the full response: status, headers and body)
 * Result expression: `={creditScore: response.body.creditScore, creditReference: response.body.reference}`
 * Error expression: `=if error != null then bpmnError("CREDIT_API_ERROR", error.message, {creditApiError: {code: error.code, message: error.message}}) else null`
 
@@ -87,10 +90,10 @@ Settings in the *Credit assessment (REST)* task:
 Example request and response:
 
 ```
-GET http://localhost:8090/api/credit-score/A-100
+POST http://localhost:8090/api/credit-check {"applicantId":"A-100","applicantName":"Test Applicant One","loanAmount":20000,"monthlyIncome":6000,"loanTermMonths":36}
 200 {"applicantId":"A-100","creditScore":780,"reference":"CB-A-100"}
 
-GET http://localhost:8090/api/credit-score/ERR-400
+POST http://localhost:8090/api/credit-check {"applicantId":"ERR-400", ...}
 503 {"error":"Credit bureau unavailable"}
 ```
 
@@ -112,6 +115,7 @@ Mock behaviour: `A-100`→780, `A-200`→480, `A-300`→640, `A-600`→760, any 
 | paymentToIncomeRatio | Number | worker | DMN input |
 | creditScore | Number | REST connector | DMN input |
 | creditReference | String | REST connector | Bureau reference |
+| creditCheckResponse | Object | REST connector | Full HTTP response (status, headers, body) |
 | creditApiError | String | REST error path (boundary output mapping) | e.g. "503" or "408 The request timed out…", shown to the reviewer |
 | decision | String | DMN | Approved / Rejected / Manual Review |
 | reviewDecision | String | Tasklist form | Approved / Rejected from the reviewer |
@@ -135,6 +139,7 @@ Version notes:
 * v1 was the initial test deployment.
 * v2 stores `creditApiError` as an object on the boundary event only, so the Tasklist form showed it blank.
 * v3 adds the boundary output mapping so the reviewer sees the error. Scenarios 3, 4a and 4b were re-run on v3 for the Tasklist evidence.
+* v4 applies the REST Outbound Connector template and changes the credit call to POST with a JSON body. All 7 scenarios were re-run on v4 and passed.
 
 ## Incident and recovery (scenario 5)
 

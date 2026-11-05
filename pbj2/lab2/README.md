@@ -83,6 +83,7 @@ These are simplified educational rules. The manual-verification condition is a s
 
 ## REST Connector (Process payment)
 
+* Template: REST Outbound Connector (`io.camunda.connectors.HttpJson.v2`, version 12)
 * `POST http://localhost:8091/api/payments`, no auth, with retries 3 and backoff PT5S
 * Body: `={paymentToken: paymentToken, amount: orderTotal, orderRef: customerRef + "-" + productId}`
 * Result expression: `={paymentStatus: response.body.status, transactionId: response.body.transactionId, paymentReason: response.body.reason}`
